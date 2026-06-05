@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Назначение сотрудника{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        📝 Назначение сотрудника: {{ employee.full_name() }}
+    </div>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Штатная единица *</label>
+            <select name="staffing_id" required>
+                <option value="">Выберите должность</option>
+                {% for s in staffing_list %}
+                <option value="{{ s.id }}" 
+                    {% if assignment and assignment.staffing_id == s.id %}selected{% endif %}
+                    {% if s.is_occupied %}disabled{% endif %}>
+                    {{ s.department.name }} → {{ s.position.name }} 
+                    ({{ s.rate }} ставки, {{ "{:,.2f}".format(s.salary) }} ₽)
+                    {% if s.position.is_head or s.position.category in ['top_management', 'middle_management'] %}
+                        👔 РУКОВОДИТЕЛЬ
+                        {% if s.is_occupied %}
+                            - ЗАНЯТО ({{ s.current_holder_name }})
+                        {% endif %}
+                    {% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            {% if staffing_list|selectattr('is_occupied')|list %}
+            <small style="color: #e74c3c; font-size: 12px; display: block; margin-top: 5px;">
+                ⚠️ Руководящие должности, отмеченные как "ЗАНЯТО", недоступны для назначения
+            </small>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label>Дата начала *</label>
+            <input type="date" name="start_date" value="{{ assignment.start_date if assignment else employee.hire_date }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_main" {% if not assignment or assignment.is_main %}checked{% endif %}>
+                Основное место работы
+            </label>
+        </div>
+        
+        <div class="form-group">
+            <label>Номер договора</label>
+            <input type="text" name="contract_number" value="{{ assignment.contract_number if assignment else '' }}" placeholder="ТД-001">
+        </div>
+        
+        <div class="form-group">
+            <label>Дата договора</label>
+            <input type="date" name="contract_date" value="{{ assignment.contract_date if assignment and assignment.contract_date else '' }}">
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+            <a href="{{ url_for('view_employee', id=employee.id) }}" class="btn btn-warning">↩️ Отмена</a>
+        </div>
+    </form>
+</div>
+
+{% if staffing_list %}
+<div class="card" style="margin-top: 20px; background: #f8f9fa;">
+    <div class="card-header">ℹ️ Информация о руководящих должностях</div>
+    <div style="padding: 15px;">
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>Отдел</th>
+                    <th>Должность</th>
+                    <th>Статус</th>
+                    <th>Кто занимает</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in staffing_list %}
+                    {% if s.position.is_head or s.position.category in ['top_management', 'middle_management'] %}
+                    <tr>
+                        <td>{{ s.department.name }}</td>
+                        <td>{{ s.position.name }}</td>
+                        <td>
+                            {% if s.is_occupied %}
+                                <span style="color: #e74c3c;">🔴 Занята</span>
+                            {% else %}
+                                <span style="color: #27ae60;">🟢 Свободна</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if s.is_occupied %}
+                                {{ s.current_holder_name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

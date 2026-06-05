@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Должности{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        💼 Список должностей
+        <a href="{{ url_for('add_position') }}" class="btn btn-primary btn-sm" style="float: right;">➕ Добавить должность</a>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Базовый оклад</th>
+                <th>Требуется образование</th>
+                <th>Опыт (лет)</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pos in positions %}
+            <tr>
+                <td>{{ pos.name }}</td>
+                <td>
+                    {% if pos.category == 'top_management' %}Топ-менеджмент
+                    {% elif pos.category == 'middle_management' %}Руководитель среднего звена
+                    {% elif pos.category == 'specialist' %}Специалист
+                    {% elif pos.category == 'worker' %}Рабочий
+                    {% else %}Junior{% endif %}
+                </td>
+                <td>{{ "{:,.2f}".format(pos.base_salary) if pos.base_salary else '0' }} ₽</td>
+                <td>{{ 'Да' if pos.requires_education else 'Нет' }}</td>
+                <td>{{ pos.requires_experience_years or '0' }}</td>
+                <td>
+                    <a href="{{ url_for('view_position', id=pos.id) }}" class="btn btn-info btn-sm">👁️</a>
+                    <a href="{{ url_for('edit_position', id=pos.id) }}" class="btn btn-success btn-sm">✏️</a>
+                    <form method="POST" action="{{ url_for('delete_position', id=pos.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Удалить должность?')">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

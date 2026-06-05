@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Просмотр должности: {{ position.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 5px;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+    
+    .info-value {
+        font-size: 18px;
+        font-weight: 500;
+    }
+    
+    .stat-number-large {
+        font-size: 36px;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .badge-head {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        👁️ Просмотр должности: {{ position.name }}
+        <div style="float: right;">
+            <a href="{{ url_for('edit_position', id=position.id) }}" class="btn btn-success btn-sm">✏️ Редактировать</a>
+            <a href="{{ url_for('positions') }}" class="btn btn-secondary btn-sm">↩️ Назад</a>
+        </div>
+    </div>
+    
+    <div class="info-grid">
+        <div class="info-card">
+            <div class="info-label">📋 Название должности</div>
+            <div class="info-value">{{ position.name }}</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">📂 Категория</div>
+            <div class="info-value">
+                {% if position.category == 'top_management' %}
+                    <span class="badge-head">Топ-менеджмент</span>
+                {% elif position.category == 'middle_management' %}
+                    <span class="badge-head">Руководитель среднего звена</span>
+                {% elif position.category == 'specialist' %}
+                    <span style="color: #3498db;">Специалист</span>
+                {% elif position.category == 'worker' %}
+                    <span style="color: #27ae60;">Рабочий</span>
+                {% else %}
+                    <span style="color: #f39c12;">Junior</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">👑 Руководящая должность</div>
+            <div class="info-value">
+                {% if position.is_head or position.category in ['top_management', 'middle_management'] %}
+                    <span style="color: green;">✓ Да</span>
+                {% else %}
+                    <span style="color: #999;">✗ Нет</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">💰 Базовый оклад</div>
+            <div class="stat-number-large">{{ "{:,.2f}".format(position.base_salary) }} ₽</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">👥 Количество сотрудников</div>
+            <div class="stat-number-large">{{ total_employees }}</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">📊 Средняя зарплата</div>
+            <div class="stat-number-large">{{ "{:,.2f}".format(avg_salary) }} ₽</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">🎓 Требуется образование</div>
+            <div class="info-value">{{ 'Да' if position.requires_education else 'Нет' }}</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">⏱️ Требуемый опыт</div>
+            <div class="info-value">{{ position.requires_experience_years or '0' }} лет</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        👥 Сотрудники на этой должности
+    </div>
+    
+    {% if employees %}
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Отдел</th>
+                <th>Ставка</th>
+                <th>Оклад</th>
+                <th>Телефон</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp in employees %}
+            <tr>
+                <td><a href="{{ url_for('view_employee', id=emp.id) }}">{{ emp.full_name() }}</a></td>
+                <td>
+                    {% set main_assignment = emp.assignments|selectattr('is_main')|selectattr('end_date', 'none')|first %}
+                    {{ main_assignment.staffing.department.name if main_assignment and main_assignment.staffing else '-' }}
+                </td>
+                <td>
+                    {% set main_assignment = emp.assignments|selectattr('is_main')|selectattr('end_date', 'none')|first %}
+                    {{ main_assignment.staffing.rate if main_assignment and main_assignment.staffing else '-' }}
+                </td>
+                <td>
+                    {% set main_assignment = emp.assignments|selectattr('is_main')|selectattr('end_date', 'none')|first %}
+                    {{ "{:,.2f}".format(main_assignment.staffing.salary) if main_assignment and main_assignment.staffing else '-' }} ₽
+                </td>
+                <td>{{ emp.phone or '-' }}</td>
+                <td>
+                    <a href="{{ url_for('view_employee', id=emp.id) }}" class="btn btn-info btn-sm">👁️</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="padding: 20px; text-align: center; color: #999;">Нет сотрудников на этой должности</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">
+        📋 Где используется эта должность
+    </div>
+    
+    {% if staffing_units %}
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th>Отдел</th>
+                <th>Ставка</th>
+                <th>Оклад (₽)</th>
+                <th>Дней отпуска</th>
+                <th>Занято</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for staff in staffing_units %}
+            <tr>
+                <td><a href="{{ url_for('view_department', id=staff.department.id) }}">{{ staff.department.name }}</a></td>
+                <td>{{ staff.rate }}</td>
+                <td>{{ "{:,.2f}".format(staff.salary) }}</td>
+                <td>{{ staff.vacation_days }}</td>
+                <td>
+                    {% set occupied = staff.assignments|selectattr('end_date', 'none')|list|length %}
+                    {{ occupied }}/{{ staff.rate|int }}
+                </td>
+                <td>
+                    <a href="{{ url_for('view_department', id=staff.department.id) }}" class="btn btn-info btn-sm">👁️</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="padding: 20px; text-align: center; color: #999;">Эта должность не используется ни в одном отделе</p>
+    {% endif %}
+</div>
+{% endblock %}

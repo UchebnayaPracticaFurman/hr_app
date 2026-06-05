@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Редактирование' if staffing else 'Добавление' }} штатной единицы{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">{{ '✏️ Редактирование' if staffing else '➕ Добавление' }} штатной единицы</div>
+    
+    <form method="POST" action="{{ url_for('add_staffing') if not staffing else url_for('edit_staffing', id=staffing.id) }}">
+        <div class="form-group">
+            <label>Отдел *</label>
+            <select name="department_id" required>
+                <option value="">Выберите отдел</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if staffing and staffing.department_id == dept.id %}selected{% endif %}>
+                    {{ dept.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Должность *</label>
+            <select name="position_id" required>
+                <option value="">Выберите должность</option>
+                {% for pos in positions %}
+                <option value="{{ pos.id }}" {% if staffing and staffing.position_id == pos.id %}selected{% endif %}>
+                    {{ pos.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Ставка (1.0 = полная ставка)</label>
+            <input type="number" step="0.25" name="rate" value="{{ staffing.rate if staffing else '1.0' }}">
+        </div>
+        
+        <div class="form-group">
+            <label>Оклад (₽) *</label>
+            <input type="number" step="0.01" name="salary" value="{{ staffing.salary if staffing else '' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Дней отпуска в год</label>
+            <input type="number" name="vacation_days" value="{{ staffing.vacation_days if staffing else '28' }}">
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+            <a href="{{ url_for('staffing') }}" class="btn btn-warning">↩️ Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

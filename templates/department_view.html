@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Просмотр отдела: {{ department.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 5px;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+    
+    .info-value {
+        font-size: 18px;
+        font-weight: 500;
+    }
+    
+    .stat-number-large {
+        font-size: 36px;
+        font-weight: bold;
+        color: #667eea;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        👁️ Просмотр отдела: {{ department.name }}
+        <div style="float: right;">
+            <a href="{{ url_for('edit_department', id=department.id) }}" class="btn btn-success btn-sm">✏️ Редактировать</a>
+            <a href="{{ url_for('departments') }}" class="btn btn-secondary btn-sm">↩️ Назад</a>
+        </div>
+    </div>
+    
+    <div class="info-grid">
+        <div class="info-card">
+            <div class="info-label">📋 Название отдела</div>
+            <div class="info-value">{{ department.name }}</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">🔢 Код отдела</div>
+            <div class="info-value">{{ department.code or 'Не указан' }}</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">👔 Руководитель</div>
+            <div class="info-value">
+                {% if department.manager %}
+                    <a href="{{ url_for('view_employee', id=department.manager.id) }}">{{ department.manager.full_name() }}</a>
+                {% else %}
+                    <span style="color: #999;">Не назначен</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">🏢 Родительский отдел</div>
+            <div class="info-value">
+                {% if department.parent %}
+                    <a href="{{ url_for('view_department', id=department.parent.id) }}">{{ department.parent.name }}</a>
+                {% else %}
+                    <span style="color: #999;">Головной отдел</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">👥 Количество сотрудников</div>
+            <div class="stat-number-large">{{ total_employees }}</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-label">💰 Фонд оплаты труда</div>
+            <div class="stat-number-large">{{ "{:,.2f}".format(total_salary_fund) }} ₽</div>
+        </div>
+    </div>
+    
+    {% if department.description %}
+    <div class="info-card" style="margin-bottom: 20px;">
+        <div class="info-label">📝 Описание</div>
+        <div class="info-value">{{ department.description }}</div>
+    </div>
+    {% endif %}
+</div>
+
+{% if sub_departments %}
+<div class="card">
+    <div class="card-header">
+        🏢 Подчиненные отделы
+    </div>
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Код</th>
+                <th>Руководитель</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in sub_departments %}
+            <tr>
+                <td>{{ sub.name }}</td>
+                <td>{{ sub.code or '-' }}</td>
+                <td>{{ sub.manager.full_name() if sub.manager else '-' }}</td>
+                <td>
+                    <a href="{{ url_for('view_department', id=sub.id) }}" class="btn btn-info btn-sm">👁️</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        👥 Сотрудники отдела
+    </div>
+    
+    {% if employees %}
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Должность</th>
+                <th>Телефон</th>
+                <th>Email</th>
+                <th>Дата приёма</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp in employees %}
+            <tr>
+                <td><a href="{{ url_for('view_employee', id=emp.id) }}">{{ emp.full_name() }}</a></td>
+                <td>
+                    {% set main_assignment = emp.assignments|selectattr('is_main')|selectattr('end_date', 'none')|first %}
+                    {{ main_assignment.staffing.position.name if main_assignment and main_assignment.staffing else '-' }}
+                </td>
+                <td>{{ emp.phone or '-' }}</td>
+                <td>{{ emp.email or '-' }}</td>
+                <td>{{ emp.hire_date.strftime('%d.%m.%Y') }}</td>
+                <td>
+                    <a href="{{ url_for('view_employee', id=emp.id) }}" class="btn btn-info btn-sm">👁️</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="padding: 20px; text-align: center; color: #999;">В отделе нет сотрудников</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">
+        📋 Штатное расписание отдела
+    </div>
+    
+    {% if staffing_units %}
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th>Должность</th>
+                <th>Ставка</th>
+                <th>Оклад (₽)</th>
+                <th>Дней отпуска</th>
+                <th>Занято</th>
+                <th>Руководящая</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for staff in staffing_units %}
+            <tr>
+                <td><a href="{{ url_for('view_position', id=staff.position.id) }}">{{ staff.position.name }}</a></td>
+                <td>{{ staff.rate }}</td>
+                <td>{{ "{:,.2f}".format(staff.salary) }}</td>
+                <td>{{ staff.vacation_days }}</td>
+                <td>
+                    {% set occupied = staff.assignments|selectattr('end_date', 'none')|list|length %}
+                    {{ occupied }}/{{ staff.rate|int }}
+                </td>
+                <td>
+                    {% if staff.position.is_head or staff.position.category in ['top_management', 'middle_management'] %}
+                        <span style="color: green;">👔 Да</span>
+                    {% else %}
+                        <span style="color: #999;">Нет</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="padding: 20px; text-align: center; color: #999;">Нет штатных единиц</p>
+    {% endif %}
+</div>
+{% endblock %}
