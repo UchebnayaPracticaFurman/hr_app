@@ -49,13 +49,72 @@ def generate_captcha():
     session['captcha_text'] = captcha_text
     session['captcha_time'] = datetime.now().timestamp()
     
-    # Создаём изображение капчи (исправленный параметр)
-    image = ImageCaptcha(width=300, height=100, font_sizes=[42])
+    # Создаём изображение с помощью PIL напрямую
+    from PIL import Image, ImageDraw, ImageFont, ImageFilter
     
-    # Генерируем изображение
-    data = image.generate(captcha_text)
+    # Параметры изображения
+    width, height = 300, 100
+    image = Image.new('RGB', (width, height), color='white')
+    draw = ImageDraw.Draw(image)
     
-    return data
+    # Добавляем шум (случайные точки)
+    for _ in range(200):
+        x = random.randint(0, width)
+        y = random.randint(0, height)
+        draw.point((x, y), fill=(random.randint(100, 200), random.randint(100, 200), random.randint(100, 200)))
+    
+    # Добавляем линии
+    for _ in range(4):
+        x1 = random.randint(0, width)
+        y1 = random.randint(0, height)
+        x2 = random.randint(0, width)
+        y2 = random.randint(0, height)
+        draw.line((x1, y1, x2, y2), fill=(random.randint(100, 200), random.randint(100, 200), random.randint(100, 200)), width=2)
+    
+    # Пытаемся загрузить шрифт
+    try:
+        # Для Linux
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 42)
+    except:
+        try:
+            # Для macOS
+            font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 42)
+        except:
+            # Используем шрифт по умолчанию
+            font = ImageFont.load_default()
+    
+    # Рисуем каждую букву с небольшим смещением и поворотом
+    x_offset = 30
+    for i, char in enumerate(captcha_text):
+        # Создаём временное изображение для буквы
+        temp_img = Image.new('RGBA', (50, 60), (255, 255, 255, 0))
+        temp_draw = ImageDraw.Draw(temp_img)
+        
+        # Получаем размер текста
+        bbox = temp_draw.textbbox((0, 0), char, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        
+        # Позиция для буквы
+        x = x_offset + i * 45
+        y = random.randint(25, 40)
+        
+        # Рисуем букву
+        draw.text((x, y), char, fill=(random.randint(0, 80), random.randint(0, 80), random.randint(0, 80)), font=font)
+        
+        # Добавляем случайное смещение для искажения
+        if random.random() > 0.5:
+            draw.text((x + 2, y), char, fill=(random.randint(150, 200), random.randint(150, 200), random.randint(150, 200)), font=font)
+    
+    # Применяем размытие
+    image = image.filter(ImageFilter.SMOOTH)
+    
+    # Сохраняем в байты
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+    
+    return img_byte_arr
 
 # =====================================================
 # МАРШРУТЫ АВТОРИЗАЦИИ
