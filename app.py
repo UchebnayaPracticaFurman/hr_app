@@ -35,92 +35,26 @@ def login_required(f):
 # ФУНКЦИИ ДЛЯ КАПЧИ
 # =====================================================
 
-import random
-import string
-import io
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
-
 def generate_captcha_text():
     """Генерирует случайный текст для капчи"""
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 def generate_captcha():
-    """Генерирует изображение капчи с БОЛЬШИМИ символами"""
+    """Генерирует изображение капчи"""
     # Генерируем случайный текст
     captcha_text = generate_captcha_text()
     
-    # Сохраняем текст в сессии
+    # Сохраняем текст в сессии для проверки
     session['captcha_text'] = captcha_text
     session['captcha_time'] = datetime.now().timestamp()
     
-    # 📌 ЗДЕСЬ МЕНЯЙ РАЗМЕРЫ (чем больше числа, тем крупнее)
-    width = 400          # Ширина картинки (было 400)
-    height = 150         # Высота картинки (было 150)
-    font_size = 240      # Размер шрифта (было 65)
-    symbol_spacing = 45  # Расстояние между буквами (было 55)
+    # Создаём изображение капчи (исправленный параметр)
+    image = ImageCaptcha(width=300, height=100, font_sizes=[42])
     
-    from PIL import Image, ImageDraw, ImageFont, ImageFilter
+    # Генерируем изображение
+    data = image.generate(captcha_text)
     
-    image = Image.new('RGB', (width, height), (255, 255, 255))
-    draw = ImageDraw.Draw(image)
-    
-    # Добавляем шум
-    for _ in range(1000):
-        x = random.randint(0, width)
-        y = random.randint(0, height)
-        draw.point((x, y), fill=(random.randint(100, 200), random.randint(100, 200), random.randint(100, 200)))
-    
-    # Добавляем толстые линии
-    for _ in range(5):
-        x1 = random.randint(0, width)
-        y1 = random.randint(0, height)
-        x2 = random.randint(0, width)
-        y2 = random.randint(0, height)
-        draw.line((x1, y1, x2, y2), fill=(random.randint(100, 150), random.randint(100, 150), random.randint(100, 150)), width=4)
-    
-    # Загружаем шрифт
-    font = None
-    font_paths = [
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
-        "/System/Library/Fonts/Helvetica.ttc"
-    ]
-    
-    for font_path in font_paths:
-        try:
-            font = ImageFont.truetype(font_path, font_size)
-            break
-        except:
-            continue
-    
-    if font is None:
-        font = ImageFont.load_default()
-    
-    # Рисуем большие буквы
-    x = 70  # Отступ слева
-    y_center = height // 2 - 30  # Центрируем по вертикали
-    
-    for i, char in enumerate(captcha_text):
-        # Случайное смещение для каждой буквы
-        y_offset = random.randint(-20, 20)
-        y = y_center + y_offset
-        
-        # Тень
-        draw.text((x + 5, y + 5), char, fill=(180, 180, 180), font=font)
-        
-        # Основная буква со случайным цветом
-        color = (random.randint(0, 100), random.randint(0, 100), random.randint(0, 100))
-        draw.text((x, y), char, fill=color, font=font)
-        
-        x += symbol_spacing + random.randint(-10, 10)
-    
-    # Сохраняем
-    img_byte_arr = io.BytesIO()
-    image.save(img_byte_arr, format='PNG')
-    img_byte_arr.seek(0)
-    
-    return img_byte_arr
+    return data
 
 # =====================================================
 # МАРШРУТЫ АВТОРИЗАЦИИ
@@ -137,17 +71,11 @@ def captcha_image():
         )
     except Exception as e:
         print(f"Ошибка генерации капчи: {e}")
-        # Возвращаем простую заглушку при ошибке
+        # Если ошибка, возвращаем простую капчу
         return send_file(
             io.BytesIO(b''),
             mimetype='image/png'
         )
-
-@app.route('/refresh-captcha')
-def refresh_captcha():
-    """Обновляет капчу"""
-    generate_captcha()
-    return '', 204
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -189,6 +117,19 @@ def login():
     generate_captcha()
     
     return render_template('login.html')
+
+@app.route('/refresh-captcha')
+def refresh_captcha():
+    """Обновляет капчу"""
+    generate_captcha()
+    return '', 204
+
+@app.route('/logout')
+def logout():
+    """Выход из системы"""
+    session.clear()
+    flash('Вы вышли из системы', 'info')
+    return redirect(url_for('login'))
     
 # =====================================================
 # ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ВАЛИДАЦИИ
