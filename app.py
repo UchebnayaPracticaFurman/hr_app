@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, extract, and_, or_
 from datetime import datetime, date, timedelta
@@ -7,10 +7,11 @@ import re
 import threading
 import time
 from functools import wraps
+from captcha.image import ImageCaptcha
 import random
 import string
 import io
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from flask import send_file
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
