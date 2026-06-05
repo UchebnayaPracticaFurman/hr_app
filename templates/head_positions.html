@@ -4,62 +4,61 @@
 
 {% block content %}
 <div class="card">
-    <div class="card-header">
-        👔 Руководящие должности
-    </div>
+    <div class="card-header">👔 Руководящие должности</div>
     
     {% if head_positions %}
-    <table>
-        <thead>
-            <tr>
-                <th>Отдел</th>
-                <th>Должность</th>
-                <th>Статус</th>
-                <th>Кто занимает</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for hp in head_positions %}
-            <tr>
-                <td>{{ hp.department }}</td>
-                <td><strong>{{ hp.position }}</strong></td>
-                <td>
-                    {% if hp.is_occupied %}
-                        <span style="color: #e74c3c;">🔴 Занята</span>
-                    {% else %}
-                        <span style="color: #27ae60;">🟢 Свободна</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if hp.is_occupied %}
-                        <a href="{{ url_for('view_employee', id=hp.holder_id) }}">{{ hp.holder_name }}</a>
-                    {% else %}
-                        <span style="color: #999;">-</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if not hp.is_occupied %}
-                        <a href="{{ url_for('employees') }}" class="btn btn-primary btn-sm">👥 Назначить сотрудника</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div style="overflow-x: auto;">
+        <table class="info-table">
+            <thead>
+                <tr>
+                    <th>Отдел</th>
+                    <th>Должность</th>
+                    <th>Статус</th>
+                    <th>Кто занимает</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hp in head_positions %}
+                <tr>
+                    <td><strong>{{ hp.department }}</strong></td>
+                    <td>{{ hp.position }}</td>
+                    <td>
+                        {% if hp.is_occupied %}
+                            <span class="badge badge-danger">🔴 Занята</span>
+                        {% else %}
+                            <span class="badge badge-success">🟢 Свободна</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if hp.is_occupied %}
+                            <a href="{{ url_for('view_employee', id=hp.holder_id) }}">{{ hp.holder_name }}</a>
+                        {% else %}
+                            <span class="badge">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not hp.is_occupied %}
+                            <a href="{{ url_for('employees') }}" class="btn btn-primary btn-sm">👥 Назначить</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <p style="padding: 20px; text-align: center; color: #999;">Нет руководящих должностей</p>
+    <p style="padding: 1.25rem; text-align: center; color: #8a9aa8;">Нет руководящих должностей</p>
     {% endif %}
 </div>
 
-<div class="card" style="margin-top: 20px; background: #f8f9fa;">
+<div class="card">
     <div class="card-header">ℹ️ Информация о руководящих должностях</div>
-    <div style="padding: 15px;">
-        <ul>
-            <li><strong>Руководящие должности</strong> - это должности с категорией "Топ-менеджмент" или "Руководитель среднего звена", а также должности, отмеченные как "Руководящие"</li>
+    <div style="padding: 1.25rem;">
+        <ul style="margin-left: 1.25rem; color: #5a6e7a;">
+            <li><strong>Руководящие должности</strong> - это должности с категорией "Топ-менеджмент" или "Руководитель среднего звена"</li>
             <li><strong>Ограничение</strong> - на одну руководящую должность может быть назначен только один сотрудник</li>
             <li><strong>Автоназначение</strong> - при назначении сотрудника на руководящую должность, он автоматически становится руководителем отдела</li>
-            <li><strong>Освобождение должности</strong> - при удалении назначения, должность становится свободной для других сотрудников</li>
         </ul>
     </div>
 </div>

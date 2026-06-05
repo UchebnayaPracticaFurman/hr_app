@@ -3,28 +3,50 @@
 {% block title %}{{ employee.full_name() }}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        👤 {{ employee.full_name() }}
-        <div style="float: right;">
-            <a href="{{ url_for('edit_employee', id=employee.id) }}" class="btn btn-success btn-sm">✏️ Редактировать</a>
-        </div>
+<div class="info-grid">
+    <div class="info-card">
+        <div class="info-label">📋 ФИО</div>
+        <div class="info-value">{{ employee.full_name() }}</div>
     </div>
-    
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-        <div><strong>Дата рождения:</strong> {{ employee.birth_date.strftime('%d.%m.%Y') if employee.birth_date else '-' }}</div>
-        <div><strong>Возраст:</strong> {{ employee.age() if employee.age() else '-' }}</div>
-        <div><strong>Пол:</strong> {{ 'Мужской' if employee.gender == 'M' else 'Женский' if employee.gender == 'F' else '-' }}</div>
-        <div><strong>СНИЛС:</strong> {{ employee.snils or '-' }}</div>
-        <div><strong>ИНН:</strong> {{ employee.inn or '-' }}</div>
-        <div><strong>Телефон:</strong> {{ employee.phone or '-' }}</div>
-        <div><strong>Email:</strong> {{ employee.email or '-' }}</div>
-        <div><strong>Дата приёма:</strong> {{ employee.hire_date.strftime('%d.%m.%Y') }}</div>
-        <div><strong>Статус:</strong> 
+    <div class="info-card">
+        <div class="info-label">🎂 Дата рождения</div>
+        <div class="info-value">{{ employee.birth_date.strftime('%d.%m.%Y') if employee.birth_date else '-' }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">📊 Возраст</div>
+        <div class="info-value">{{ employee.age() if employee.age() else '-' }} лет</div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">⚥ Пол</div>
+        <div class="info-value">{{ 'Мужской' if employee.gender == 'M' else 'Женский' }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">🆔 СНИЛС</div>
+        <div class="info-value">{{ employee.snils or '-' }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">🆔 ИНН</div>
+        <div class="info-value">{{ employee.inn or '-' }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">📞 Телефон</div>
+        <div class="info-value">{{ employee.phone or '-' }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">✉️ Email</div>
+        <div class="info-value">{{ employee.email or '-' }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">📅 Дата приёма</div>
+        <div class="info-value">{{ employee.hire_date.strftime('%d.%m.%Y') }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">📌 Статус</div>
+        <div class="info-value">
             {% if employee.is_active %}
-                <span style="color: green;">Активен</span>
+                <span class="badge badge-success">Активен</span>
             {% else %}
-                <span style="color: red;">Уволен {{ employee.dismissal_date.strftime('%d.%m.%Y') if employee.dismissal_date else '' }}</span>
+                <span class="badge badge-danger">Уволен {{ employee.dismissal_date.strftime('%d.%m.%Y') if employee.dismissal_date else '' }}</span>
             {% endif %}
         </div>
     </div>
@@ -37,108 +59,98 @@
     </div>
     
     {% if assignments %}
-    <table>
-        <thead>
-            <tr>
-                <th>Должность</th>
-                <th>Отдел</th>
-                <th>Дата начала</th>
-                <th>Дата окончания</th>
-                <th>Основная</th>
-                <th>Руководящая</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for a in assignments %}
-            <tr>
-                <td>{{ a.staffing.position.name }}</td>
-                <td>{{ a.staffing.department.name }}</td>
-                <td>{{ a.start_date.strftime('%d.%m.%Y') }}</td>
-                <td>{{ a.end_date.strftime('%d.%m.%Y') if a.end_date else 'по настоящее время' }}</td>
-                <td>{% if a.is_main %}✓{% endif %}</td>
-                <td>
-                    {% if a.staffing.position.is_head or a.staffing.position.category in ['top_management', 'middle_management'] %}
-                        <span style="color: green;">👔 Руководитель</span>
-                    {% else %}
-                        <span style="color: #999;">-</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if not a.end_date %}
-                    <form method="POST" action="{{ url_for('delete_assignment', id=a.id) }}" style="display: inline;" onsubmit="return confirm('Удалить назначение?')">
-                        <button type="submit" class="btn btn-danger btn-sm">🗑️ Удалить</button>
-                    </form>
-                    {% else %}
-                        <span style="color: #999;">Завершено</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div style="overflow-x: auto;">
+        <table class="info-table">
+            <thead>
+                <tr><th>Должность</th><th>Отдел</th><th>Дата начала</th><th>Дата окончания</th><th>Основная</th><th>Руководящая</th><th>Действия</th></tr>
+            </thead>
+            <tbody>
+                {% for a in assignments %}
+                <tr>
+                    <td>{{ a.staffing.position.name }}</td>
+                    <td>{{ a.staffing.department.name }}</td>
+                    <td>{{ a.start_date.strftime('%d.%m.%Y') }}</td>
+                    <td>{{ a.end_date.strftime('%d.%m.%Y') if a.end_date else 'по настоящее время' }}</td>
+                    <td>{% if a.is_main %}✓{% endif %}</td>
+                    <td>
+                        {% if a.staffing.position.is_head or a.staffing.position.category in ['top_management', 'middle_management'] %}
+                            <span class="badge badge-head">Руководитель</span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not a.end_date %}
+                        <form method="POST" action="{{ url_for('delete_assignment', id=a.id) }}" style="display: inline;" onsubmit="return confirm('Удалить назначение?')">
+                            <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                        </form>
+                        {% else %}
+                            <span class="badge">Завершено</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <p style="padding: 20px; text-align: center; color: #999;">Нет назначений</p>
+    <p style="padding: 1.25rem; text-align: center; color: #8a9aa8;">Нет назначений</p>
     {% endif %}
 </div>
 
-<div class="card">
-    <div class="card-header">
-        🌴 Отпуска
-        <a href="{{ url_for('add_vacation', employee_id=employee.id) }}" class="btn btn-primary btn-sm" style="float: right;">➕ Добавить</a>
+<div class="info-grid">
+    <div class="card">
+        <div class="card-header">🌴 Отпуска</div>
+        <a href="{{ url_for('add_vacation', employee_id=employee.id) }}" class="btn btn-primary btn-sm" style="margin: 0.75rem;">➕ Добавить</a>
+        {% if vacations %}
+        <div style="overflow-x: auto;">
+            <table class="info-table">
+                <thead><tr><th>Начало</th><th>Конец</th><th>Дней</th><th>Тип</th><th>Статус</th><th>Действия</th></tr></thead>
+                <tbody>
+                    {% for v in vacations %}
+                    <tr>
+                        <td>{{ v.start_date.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ v.end_date.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ v.days_count }}</td>
+                        <td>{{ v.type }}</td>
+                        <td>{{ v.status }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_vacation', id=v.id) }}" style="display: inline;" onsubmit="return confirm('Удалить запись об отпуске?')">
+                                <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="padding: 0.75rem; color: #8a9aa8;">Нет отпусков</p>
+        {% endif %}
     </div>
     
-    {% if vacations %}
-    <table>
-        <thead>
-            <tr><th>Начало</th><th>Конец</th><th>Дней</th><th>Тип</th><th>Статус</th><th>Действия</th></tr>
-        </thead>
-        <tbody>
-            {% for v in vacations %}
-            <tr>
-                <td>{{ v.start_date.strftime('%d.%m.%Y') }}</td>
-                <td>{{ v.end_date.strftime('%d.%m.%Y') }}</td>
-                <td>{{ v.days_count }}</td>
-                <td>{{ v.type }}</td>
-                <td>{{ v.status }}</td>
-                <td>
-                    <form method="POST" action="{{ url_for('delete_vacation', id=v.id) }}" style="display: inline;" onsubmit="return confirm('Удалить запись об отпуске?')">
-                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p style="padding: 20px; text-align: center; color: #999;">Нет отпусков</p>
-    {% endif %}
-</div>
-
-<div class="card">
-    <div class="card-header">
-        🤒 Больничные
+    <div class="card">
+        <div class="card-header">🤒 Больничные</div>
+        {% if sick_leaves %}
+        <div style="overflow-x: auto;">
+            <table class="info-table">
+                <thead><tr><th>Начало</th><th>Конец</th><th>Дней</th><th>Номер</th><th>Диагноз</th></tr></thead>
+                <tbody>
+                    {% for sl in sick_leaves %}
+                    <tr>
+                        <td>{{ sl.start_date.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ sl.end_date.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ sl.days_count }}</td>
+                        <td>{{ sl.sick_list_number }}</td>
+                        <td>{{ sl.diagnosis or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="padding: 0.75rem; color: #8a9aa8;">Нет больничных</p>
+        {% endif %}
     </div>
-    
-    {% if sick_leaves %}
-    <table>
-        <thead>
-            <tr><th>Начало</th><th>Конец</th><th>Дней</th><th>Номер</th><th>Диагноз</th></tr>
-        </thead>
-        <tbody>
-            {% for sl in sick_leaves %}
-            <tr>
-                <td>{{ sl.start_date.strftime('%d.%m.%Y') }}</td>
-                <td>{{ sl.end_date.strftime('%d.%m.%Y') }}</td>
-                <td>{{ sl.days_count }}</td>
-                <td>{{ sl.sick_list_number }}</td>
-                <td>{{ sl.diagnosis or '-' }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p style="padding: 20px; text-align: center; color: #999;">Нет больничных</p>
-    {% endif %}
 </div>
 {% endblock %}

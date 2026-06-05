@@ -3,140 +3,12 @@
 {% block title %}Главная{% endblock %}
 
 {% block content %}
-<style>
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-    
-    .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 12px;
-        text-align: center;
-        transition: transform 0.3s;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-    }
-    
-    .stat-label {
-        font-size: 1rem;
-        opacity: 0.9;
-        margin-top: 5px;
-    }
-    
-    .report-section {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    
-    .report-title {
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #667eea;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .report-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 20px;
-    }
-    
-    .chart-container {
-        padding: 15px;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-    
-    .progress-bar {
-        background: #e0e0e0;
-        border-radius: 10px;
-        overflow: hidden;
-        margin: 10px 0;
-    }
-    
-    .progress-fill {
-        background: linear-gradient(90deg, #667eea, #764ba2);
-        color: white;
-        padding: 5px 10px;
-        text-align: right;
-        font-size: 12px;
-        border-radius: 10px;
-    }
-    
-    .info-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    .info-table th, .info-table td {
-        padding: 10px;
-        text-align: left;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    
-    .info-table th {
-        background: #f8f9fa;
-        font-weight: 600;
-    }
-    
-    .info-table tr:hover {
-        background: #f8f9fa;
-    }
-    
-    .badge {
-        display: inline-block;
-        padding: 3px 8px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 500;
-    }
-    
-    .badge-success {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .badge-danger {
-        background: #f8d7da;
-        color: #721c24;
-    }
-    
-    .badge-warning {
-        background: #fff3cd;
-        color: #856404;
-    }
-    
-    .badge-info {
-        background: #d1ecf1;
-        color: #0c5460;
-    }
-</style>
-
 <!-- Основные показатели -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-number">{{ total_employees }}</div>
         <div class="stat-label">Активных сотрудников</div>
-        <small style="opacity: 0.8;">Всего: {{ total_employees_all }}</small>
+        <small>Всего: {{ total_employees_all }}</small>
     </div>
     <div class="stat-card">
         <div class="stat-number">{{ total_departments }}</div>
@@ -161,258 +33,207 @@
 </div>
 
 <!-- Детальная отчётность -->
-<div class="report-grid">
-    
+<div class="info-grid">
     <!-- Возрастной состав -->
-    <div class="report-section">
-        <div class="report-title">
-            📊 Возрастной состав
-        </div>
-        {% for group, count in age_groups.items() %}
-        <div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span>{{ group }} лет</span>
-                <span>{{ count }} чел. ({{ "%.1f"|format(count / total_employees * 100 if total_employees > 0 else 0) }}%)</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ count / total_employees * 100 if total_employees > 0 else 0 }}%;">
-                    {% if count / total_employees * 100 > 10 %}{{ "%.1f"|format(count / total_employees * 100 if total_employees > 0 else 0) }}%{% endif %}
+    <div class="card">
+        <div class="card-header">📊 Возрастной состав</div>
+        <div style="padding: 1.25rem;">
+            {% for group, count in age_groups.items() %}
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>{{ group }} лет</span>
+                    <span>{{ count }} чел. ({{ "%.1f"|format(count / total_employees * 100 if total_employees > 0 else 0) }}%)</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ count / total_employees * 100 if total_employees > 0 else 0 }}%;"></div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
     
     <!-- Руководящие должности -->
-    <div class="report-section">
-        <div class="report-title">
-            👔 Руководящие должности
-        </div>
-        <div style="margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span>Занято руководящих должностей</span>
-                <span>{{ occupied_head_positions }}/{{ head_positions }}</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ occupied_head_positions / head_positions * 100 if head_positions > 0 else 0 }}%;">
-                    {{ "%.1f"|format(occupied_head_positions / head_positions * 100 if head_positions > 0 else 0) }}%
+    <div class="card">
+        <div class="card-header">👔 Руководящие должности</div>
+        <div style="padding: 1.25rem;">
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Занято руководящих должностей</span>
+                    <span>{{ occupied_head_positions }}/{{ head_positions }}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ occupied_head_positions / head_positions * 100 if head_positions > 0 else 0 }}%;"></div>
                 </div>
             </div>
+            <a href="{{ url_for('head_positions') }}" class="btn btn-primary btn-sm">👔 Управление руководящими должностями</a>
         </div>
-        <a href="{{ url_for('head_positions') }}" class="btn btn-primary btn-sm">👔 Управление руководящими должностями</a>
     </div>
     
     <!-- Текущие отсутствия -->
-    <div class="report-section">
-        <div class="report-title">
-            🏖️ Текущие отсутствия
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
-            <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                <div style="font-size: 2rem; color: #3498db;">{{ on_vacation_now }}</div>
-                <div style="color: #666;">В отпуске</div>
+    <div class="card">
+        <div class="card-header">🏖️ Текущие отсутствия</div>
+        <div style="padding: 1.25rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                <div style="padding: 15px; background: #f8f9fb; border-radius: 8px;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #4a90e2;">{{ on_vacation_now }}</div>
+                    <div style="color: #8a9aa8;">В отпуске</div>
+                </div>
+                <div style="padding: 15px; background: #f8f9fb; border-radius: 8px;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #e74c3c;">{{ on_sick_leave_now }}</div>
+                    <div style="color: #8a9aa8;">На больничном</div>
+                </div>
             </div>
-            <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                <div style="font-size: 2rem; color: #e74c3c;">{{ on_sick_leave_now }}</div>
-                <div style="color: #666;">На больничном</div>
-            </div>
         </div>
-        {% if on_vacation_list %}
-        <div style="margin-top: 15px;">
-            <strong>Сейчас в отпуске:</strong>
-            <ul style="margin-top: 10px; list-style: none;">
-                {% for emp in on_vacation_list %}
-                <li style="padding: 5px 0;">• {{ emp.full_name() }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
     </div>
     
     <!-- Ближайшие события -->
-    <div class="report-section">
-        <div class="report-title">
-            🎂 Ближайшие события
-        </div>
-        <div style="margin-bottom: 15px;">
-            <strong>🎉 Дни рождения в этом месяце:</strong>
-            {% if birthdays %}
-            <ul style="margin-top: 10px; list-style: none;">
-                {% for emp in birthdays %}
-                <li style="padding: 5px 0;">• {{ emp.full_name() }} - {{ emp.birth_date.strftime('%d.%m') }}</li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p style="color: #999; margin-top: 10px;">Нет дней рождения в этом месяце</p>
-            {% endif %}
-        </div>
-        <div>
-            <strong>⭐ Скоро день рождения (30 дней):</strong>
-            {% if upcoming_birthdays_list %}
-            <ul style="margin-top: 10px; list-style: none;">
-                {% for emp in upcoming_birthdays_list %}
-                <li style="padding: 5px 0;">• {{ emp.full_name() }} - {{ emp.birth_date.strftime('%d.%m') }}</li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p style="color: #999; margin-top: 10px;">Нет дней рождения в ближайшие 30 дней</p>
-            {% endif %}
+    <div class="card">
+        <div class="card-header">🎂 Ближайшие события</div>
+        <div style="padding: 1.25rem;">
+            <div style="margin-bottom: 1rem;">
+                <strong>🎉 Дни рождения в этом месяце:</strong>
+                {% if birthdays %}
+                <ul style="margin-top: 0.75rem; list-style: none;">
+                    {% for emp in birthdays %}
+                    <li style="padding: 0.25rem 0;">• {{ emp.full_name() }} - {{ emp.birth_date.strftime('%d.%m') }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="color: #8a9aa8; margin-top: 0.5rem;">Нет дней рождения</p>
+                {% endif %}
+            </div>
+            <div>
+                <strong>⭐ Скоро день рождения:</strong>
+                {% if upcoming_birthdays_list %}
+                <ul style="margin-top: 0.75rem; list-style: none;">
+                    {% for emp in upcoming_birthdays_list %}
+                    <li style="padding: 0.25rem 0;">• {{ emp.full_name() }} - {{ emp.birth_date.strftime('%d.%m') }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="color: #8a9aa8; margin-top: 0.5rem;">Нет в ближайшие 30 дней</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Статистика по отделам -->
-<div class="report-section">
-    <div class="report-title">
-        🏢 Статистика по отделам
-    </div>
-    <table class="info-table">
-        <thead>
-            <tr>
-                <th>Отдел</th>
-                <th>Руководитель</th>
-                <th>Сотрудников</th>
-                <th>ФОТ (мес)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for dept in dept_stats %}
-            <tr>
-                <td><strong>{{ dept.name }}</strong></td>
-                <td>{{ dept.manager }}</td>
-                <td>{{ dept.employees_count }}</td>
-                <td>{{ "{:,.2f}".format(dept.salary_fund) }} ₽</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<!-- Топ должностей -->
-<div class="report-section">
-    <div class="report-title">
-        💼 Топ должностей по численности
-    </div>
-    <table class="info-table">
-        <thead>
-            <tr>
-                <th>Должность</th>
-                <th>Категория</th>
-                <th>Сотрудников</th>
-                <th>Базовый оклад</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for pos in position_stats|sort(attribute='employees_count', reverse=True) %}
-            <tr>
-                <td><strong>{{ pos.name }}</strong></td>
-                <td>
-                    {% if pos.category == 'top_management' %}
-                    <span class="badge badge-danger">Топ-менеджмент</span>
-                    {% elif pos.category == 'middle_management' %}
-                    <span class="badge badge-warning">Руководитель</span>
-                    {% elif pos.category == 'specialist' %}
-                    <span class="badge badge-info">Специалист</span>
-                    {% else %}
-                    <span class="badge">{{ pos.category }}</span>
-                    {% endif %}
-                </td>
-                <td>{{ pos.employees_count }}</td>
-                <td>{{ "{:,.2f}".format(pos.base_salary) }} ₽</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<!-- Недавние события -->
-<div class="report-grid">
-    <div class="report-section">
-        <div class="report-title">
-            🆕 Недавно принятые (30 дней)
-        </div>
-        {% if recent_hires %}
-        <table class="info-table">
+<div class="card">
+    <div class="card-header">🏢 Статистика по отделам</div>
+    <div style="overflow-x: auto;">
+        <table>
             <thead>
-                <tr><th>Сотрудник</th><th>Дата приёма</th><th>Должность</th></tr>
+                <tr><th>Отдел</th><th>Руководитель</th><th>Сотрудников</th><th>ФОТ (мес)</th></tr>
             </thead>
             <tbody>
-                {% for emp in recent_hires %}
+                {% for dept in dept_stats %}
                 <tr>
-                    <td><a href="{{ url_for('view_employee', id=emp.id) }}">{{ emp.full_name() }}</a></td>
-                    <td>{{ emp.hire_date.strftime('%d.%m.%Y') }}</td>
-                    <td>
-                        {% set main_assignment = emp.assignments|selectattr('is_main')|selectattr('end_date', 'none')|first %}
-                        {{ main_assignment.staffing.position.name if main_assignment and main_assignment.staffing else '-' }}
-                    </td>
+                    <td><strong>{{ dept.name }}</strong></td>
+                    <td>{{ dept.manager }}</td>
+                    <td>{{ dept.employees_count }}</td>
+                    <td>{{ "{:,.2f}".format(dept.salary_fund) }} ₽</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        {% else %}
-        <p style="color: #999;">Нет новых сотрудников за последние 30 дней</p>
-        {% endif %}
     </div>
-    
-    <div class="report-section">
-        <div class="report-title">
-            📈 Краткая сводка
-        </div>
-        <table class="info-table">
-            <tr>
-                <td><strong>Средний возраст сотрудников:</strong></td>
-                <td>
-                    {% set total_age = 0 %}
-                    {% set age_count = 0 %}
-                    {% for emp in employees %}
-                        {% if emp.age() %}
-                            {% set total_age = total_age + emp.age() %}
-                            {% set age_count = age_count + 1 %}
+</div>
+
+<!-- Топ должностей -->
+<div class="card">
+    <div class="card-header">💼 Топ должностей по численности</div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr><th>Должность</th><th>Категория</th><th>Сотрудников</th><th>Базовый оклад</th></tr>
+            </thead>
+            <tbody>
+                {% for pos in position_stats|sort(attribute='employees_count', reverse=True) %}
+                <tr>
+                    <td><strong>{{ pos.name }}</strong></td>
+                    <td>
+                        {% if pos.category == 'top_management' %}
+                        <span class="badge badge-danger">Топ-менеджмент</span>
+                        {% elif pos.category == 'middle_management' %}
+                        <span class="badge badge-warning">Руководитель</span>
+                        {% elif pos.category == 'specialist' %}
+                        <span class="badge badge-info">Специалист</span>
+                        {% else %}
+                        <span class="badge">{{ pos.category }}</span>
                         {% endif %}
-                    {% endfor %}
-                    {% if age_count > 0 %}
-                        {{ "%.1f"|format(total_age / age_count) }} лет
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td><strong>Коэффициент занятости:</strong></td>
-                <td>{{ "%.1f"|format(occupied_positions / total_staffing * 100 if total_staffing > 0 else 0) }}%</td>
-            </tr>
-            <tr>
-                <td><strong>Общий ФОТ (месяц):</strong></td>
-                <td>
-                    {% set total_salary = dept_stats|sum(attribute='salary_fund') %}
-                    {{ "{:,.2f}".format(total_salary) }} ₽
-                </td>
-            </tr>
-            <tr>
-                <td><strong>Средняя зарплата:</strong></td>
-                <td>
-                    {% if total_employees > 0 %}
-                        {{ "{:,.2f}".format(total_salary / total_employees) }} ₽
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
+                    </td>
+                    <td>{{ pos.employees_count }}</td>
+                    <td>{{ "{:,.2f}".format(pos.base_salary) }} ₽</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 </div>
 
-<!-- Быстрые действия -->
-<div class="report-section">
-    <div class="report-title">
-        🔗 Быстрые действия
+<!-- Недавние события и сводка -->
+<div class="info-grid">
+    <div class="card">
+        <div class="card-header">🆕 Недавно принятые (30 дней)</div>
+        <div style="overflow-x: auto;">
+            {% if recent_hires %}
+            <table>
+                <thead><tr><th>Сотрудник</th><th>Дата приёма</th></tr></thead>
+                <tbody>
+                    {% for emp in recent_hires %}
+                    <tr>
+                        <td><a href="{{ url_for('view_employee', id=emp.id) }}">{{ emp.full_name() }}</a></td>
+                        <td>{{ emp.hire_date.strftime('%d.%m.%Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="padding: 1rem; color: #8a9aa8;">Нет новых сотрудников</p>
+            {% endif %}
+        </div>
     </div>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    
+    <div class="card">
+        <div class="card-header">📈 Краткая сводка</div>
+        <div style="padding: 1.25rem;">
+            <table style="width: 100%;">
+                <tr><td><strong>Средний возраст:</strong></td>
+                    <td>
+                        {% set total_age = 0 %}
+                        {% set age_count = 0 %}
+                        {% for emp in employees %}
+                            {% if emp.age() %}
+                                {% set total_age = total_age + emp.age() %}
+                                {% set age_count = age_count + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ "%.1f"|format(total_age / age_count) if age_count > 0 else '-' }} лет
+                    </td>
+                </tr>
+                <tr><td><strong>Занятость:</strong></td>
+                    <td>{{ "%.1f"|format(occupied_positions / total_staffing * 100 if total_staffing > 0 else 0) }}%</td>
+                </tr>
+                <tr><td><strong>Общий ФОТ:</strong></td>
+                    <td>{{ "{:,.2f}".format(dept_stats|sum(attribute='salary_fund')) }} ₽</td>
+                </tr>
+                <tr><td><strong>Средняя ЗП:</strong></td>
+                    <td>{{ "{:,.2f}".format(dept_stats|sum(attribute='salary_fund') / total_employees) if total_employees > 0 else '-' }} ₽</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="card">
+    <div class="card-header">🔗 Быстрые действия</div>
+    <div style="padding: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
         <a href="{{ url_for('add_employee') }}" class="btn btn-primary">➕ Добавить сотрудника</a>
         <a href="{{ url_for('add_department') }}" class="btn btn-success">🏢 Добавить отдел</a>
         <a href="{{ url_for('add_position') }}" class="btn btn-warning">💼 Добавить должность</a>
         <a href="{{ url_for('add_staffing') }}" class="btn btn-info">📋 Добавить штатную единицу</a>
-        <a href="{{ url_for('head_positions') }}" class="btn btn-danger">👔 Руководящие должности</a>
     </div>
 </div>
 {% endblock %}

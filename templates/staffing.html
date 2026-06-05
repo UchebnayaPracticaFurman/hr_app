@@ -9,59 +9,51 @@
         <a href="{{ url_for('add_staffing') }}" class="btn btn-primary btn-sm" style="float: right;">➕ Добавить штатную единицу</a>
     </div>
     
-    <table>
-        <thead>
-            <tr>
-                <th>Отдел</th>
-                <th>Должность</th>
-                <th>Ставка</th>
-                <th>Оклад (₽)</th>
-                <th>Дней отпуска</th>
-                <th>Руководящая</th>
-                <th>Занято</th>
-                <th>Кто занимает</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for s in staffing %}
-            <tr>
-                <td>{{ s.department.name }}</td>
-                <td>{{ s.position.name }}</td>
-                <td>{{ s.rate }}</td>
-                <td>{{ "{:,.2f}".format(s.salary) }}</td>
-                <td>{{ s.vacation_days }}</td>
-                <td>
-                    {% if s.position.is_head or s.position.category in ['top_management', 'middle_management'] %}
-                        <span style="color: green;">👔 Да</span>
-                    {% else %}
-                        <span style="color: #999;">Нет</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% set holder = s.get_current_holder() %}
-                    {% if holder %}
-                        <span style="color: #e74c3c;">Занята</span>
-                    {% else %}
-                        <span style="color: #27ae60;">Свободна</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if holder %}
-                        {{ holder.full_name() }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{{ url_for('edit_staffing', id=s.id) }}" class="btn btn-success btn-sm">✏️</a>
-                    <form method="POST" action="{{ url_for('delete_staffing', id=s.id) }}" style="display: inline;">
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Деактивировать штатную единицу?')">🗑️</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Отдел</th>
+                    <th>Должность</th>
+                    <th>Ставка</th>
+                    <th>Оклад (₽)</th>
+                    <th>Руководящая</th>
+                    <th>Занято</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in staffing %}
+                <tr>
+                    <td><a href="{{ url_for('view_department', id=s.department.id) }}">{{ s.department.name }}</a></td>
+                    <td><a href="{{ url_for('view_position', id=s.position.id) }}">{{ s.position.name }}</a></td>
+                    <td>{{ s.rate }}</td>
+                    <td>{{ "{:,.2f}".format(s.salary) }} ₽</td>
+                    <td>
+                        {% if s.position.is_head or s.position.category in ['top_management', 'middle_management'] %}
+                            <span class="badge badge-head">👔 Да</span>
+                        {% else %}
+                            <span class="badge">Нет</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set occupied = s.assignments|selectattr('end_date', 'none')|list|length %}
+                        {% if occupied > 0 %}
+                            <span class="badge badge-success">{{ occupied }} занято</span>
+                        {% else %}
+                            <span class="badge">0 занято</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('edit_staffing', id=s.id) }}" class="btn btn-success btn-sm">✏️</a>
+                        <form method="POST" action="{{ url_for('delete_staffing', id=s.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Деактивировать штатную единицу?')">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

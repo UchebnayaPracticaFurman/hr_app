@@ -6,7 +6,7 @@
 <div class="card">
     <div class="card-header">{{ '✏️ Редактирование' if staffing else '➕ Добавление' }} штатной единицы</div>
     
-    <form method="POST" action="{{ url_for('add_staffing') if not staffing else url_for('edit_staffing', id=staffing.id) }}">
+    <form method="POST" style="padding: 1.25rem;">
         <div class="form-group">
             <label>Отдел *</label>
             <select name="department_id" required>
@@ -26,6 +26,9 @@
                 {% for pos in positions %}
                 <option value="{{ pos.id }}" {% if staffing and staffing.position_id == pos.id %}selected{% endif %}>
                     {{ pos.name }}
+                    {% if pos.is_head or pos.category in ['top_management', 'middle_management'] %}
+                        (👔 Руководящая)
+                    {% endif %}
                 </option>
                 {% endfor %}
             </select>
@@ -48,7 +51,7 @@
         
         <div style="margin-top: 20px;">
             <button type="submit" class="btn btn-primary">💾 Сохранить</button>
-            <a href="{{ url_for('staffing') }}" class="btn btn-warning">↩️ Отмена</a>
+            <a href="{{ url_for('staffing') }}" class="btn btn-secondary">↩️ Отмена</a>
         </div>
     </form>
 </div>

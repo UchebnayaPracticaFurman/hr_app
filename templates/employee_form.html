@@ -6,99 +6,95 @@
 <div class="card">
     <div class="card-header">{{ '✏️ Редактирование' if employee else '➕ Добавление' }} сотрудника</div>
     
-    <form method="POST" onsubmit="return validateForm()">
+    <form method="POST">
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
             <div class="form-group">
                 <label>Фамилия *</label>
-                <input type="text" name="last_name" value="{{ employee.last_name if employee else '' }}" required maxlength="50">
+                <input type="text" name="last_name" value="{{ employee.last_name if employee else (form_data.last_name if form_data else '') }}" required maxlength="50">
             </div>
             <div class="form-group">
                 <label>Имя *</label>
-                <input type="text" name="first_name" value="{{ employee.first_name if employee else '' }}" required maxlength="50">
+                <input type="text" name="first_name" value="{{ employee.first_name if employee else (form_data.first_name if form_data else '') }}" required maxlength="50">
             </div>
             <div class="form-group">
                 <label>Отчество</label>
-                <input type="text" name="middle_name" value="{{ employee.middle_name if employee else '' }}" maxlength="50">
+                <input type="text" name="middle_name" value="{{ employee.middle_name if employee else (form_data.middle_name if form_data else '') }}" maxlength="50">
             </div>
             <div class="form-group">
                 <label>Дата рождения</label>
-                <input type="date" name="birth_date" value="{{ employee.birth_date if employee and employee.birth_date else '' }}">
+                <input type="date" name="birth_date" value="{{ employee.birth_date if employee and employee.birth_date else (form_data.birth_date if form_data else '') }}">
             </div>
             <div class="form-group">
-                <label>Пол</label>
-                <select name="gender">
-                    <option value="">Не указан</option>
-                    <option value="M" {% if employee and employee.gender == 'M' %}selected{% endif %}>Мужской</option>
-                    <option value="F" {% if employee and employee.gender == 'F' %}selected{% endif %}>Женский</option>
+                <label>Пол *</label>
+                <select name="gender" required>
+                    <option value="" disabled {% if not employee or not employee.gender %}selected{% endif %}>Выберите пол</option>
+                    <option value="M" {% if (employee and employee.gender == 'M') or (form_data and form_data.gender == 'M') %}selected{% endif %}>Мужской</option>
+                    <option value="F" {% if (employee and employee.gender == 'F') or (form_data and form_data.gender == 'F') %}selected{% endif %}>Женский</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Дата приёма *</label>
-                <input type="date" name="hire_date" value="{{ employee.hire_date if employee and employee.hire_date else '' }}" required>
+                <input type="date" name="hire_date" value="{{ employee.hire_date if employee and employee.hire_date else (form_data.hire_date if form_data else '') }}" required>
             </div>
             <div class="form-group">
                 <label>СНИЛС</label>
-                <input type="text" name="snils" value="{{ employee.snils if employee else '' }}" placeholder="000-000-000 00" maxlength="14">
-                <small style="color: #666; font-size: 12px;">Формат: 123-456-789 01 (макс. 14 символов)</small>
+                <input type="text" name="snils" value="{{ employee.snils if employee else (form_data.snils if form_data else '') }}" placeholder="12345678901" maxlength="14">
+                <small>Только цифры, 11 или 14 символов</small>
             </div>
             <div class="form-group">
                 <label>ИНН</label>
-                <input type="text" name="inn" value="{{ employee.inn if employee else '' }}" placeholder="12 цифр" maxlength="12">
-                <small style="color: #666; font-size: 12px;">12 цифр</small>
+                <input type="text" name="inn" value="{{ employee.inn if employee else (form_data.inn if form_data else '') }}" placeholder="12 цифр" maxlength="12">
+                <small>12 цифр</small>
             </div>
             <div class="form-group">
                 <label>Телефон</label>
-                <input type="tel" name="phone" value="{{ employee.phone if employee else '' }}" maxlength="20">
+                <input type="tel" name="phone" value="{{ employee.phone if employee else (form_data.phone if form_data else '') }}" maxlength="20">
             </div>
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email" value="{{ employee.email if employee else '' }}" maxlength="100">
+                <input type="email" name="email" value="{{ employee.email if employee else (form_data.email if form_data else '') }}" maxlength="100">
             </div>
             <div class="form-group">
                 <label>Паспорт (серия)</label>
-                <input type="text" name="passport_series" value="{{ employee.passport_series if employee else '' }}" maxlength="10">
+                <input type="text" name="passport_series" value="{{ employee.passport_series if employee else (form_data.passport_series if form_data else '') }}" maxlength="10">
             </div>
             <div class="form-group">
                 <label>Паспорт (номер)</label>
-                <input type="text" name="passport_number" value="{{ employee.passport_number if employee else '' }}" maxlength="10">
+                <input type="text" name="passport_number" value="{{ employee.passport_number if employee else (form_data.passport_number if form_data else '') }}" maxlength="10">
             </div>
         </div>
         <div class="form-group">
             <label>Адрес</label>
-            <textarea name="address" rows="3" maxlength="65535">{{ employee.address if employee else '' }}</textarea>
+            <textarea name="address" rows="3">{{ employee.address if employee else (form_data.address if form_data else '') }}</textarea>
         </div>
         
         <div style="margin-top: 20px;">
             <button type="submit" class="btn btn-primary">💾 Сохранить</button>
-            <a href="{{ url_for('employees') }}" class="btn btn-warning">↩️ Отмена</a>
+            <a href="{{ url_for('employees') }}" class="btn btn-secondary">↩️ Отмена</a>
         </div>
     </form>
 </div>
 
 <script>
 function validateForm() {
-    // Проверка ИНН (только цифры, 10 или 12 символов)
     var inn = document.querySelector('input[name="inn"]').value;
     if (inn && !/^\d{10,12}$/.test(inn)) {
         alert('ИНН должен содержать только цифры (10 или 12 символов)');
         return false;
     }
     
-    // Проверка СНИЛС
     var snils = document.querySelector('input[name="snils"]').value;
     if (snils && snils.length > 14) {
         alert('СНИЛС не может быть длиннее 14 символов');
         return false;
     }
     
-    // Проверка email
     var email = document.querySelector('input[name="email"]').value;
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         alert('Введите корректный email');
         return false;
     }
     
-    // Проверка даты рождения (возраст не менее 14 лет)
     var birthDate = document.querySelector('input[name="birth_date"]').value;
     if (birthDate) {
         var today = new Date();
