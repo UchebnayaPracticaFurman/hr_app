@@ -56,8 +56,8 @@ def generate_captcha():
     # 📌 ЗДЕСЬ МЕНЯЙ РАЗМЕРЫ (чем больше числа, тем крупнее)
     width = 400          # Ширина картинки (было 400)
     height = 150         # Высота картинки (было 150)
-    font_size = 100      # Размер шрифта (было 65)
-    symbol_spacing = 85  # Расстояние между буквами (было 55)
+    font_size = 240      # Размер шрифта (было 65)
+    symbol_spacing = 45  # Расстояние между буквами (было 55)
     
     from PIL import Image, ImageDraw, ImageFont, ImageFilter
     
