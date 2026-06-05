@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Больничные листы{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        🤒 Список больничных листов
+        <a href="{{ url_for('employees') }}" class="btn btn-primary btn-sm" style="float: right;">➕ Добавить сотруднику</a>
+    </div>
+    
+    <!-- Форма фильтрации -->
+    <div style="padding: 1rem; background: #f8f9fb; border-bottom: 1px solid #e8ecef;">
+        <form method="GET" action="{{ url_for('sick_leaves') }}" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-size: 0.75rem;">🔍 Поиск</label>
+                <input type="text" name="search" value="{{ search }}" placeholder="Сотрудник или номер..." style="margin-top: 4px;">
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+                <label style="font-size: 0.75rem;">📌 Статус</label>
+                <select name="status" style="margin-top: 4px;">
+                    <option value="">Все</option>
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>Активные</option>
+                    <option value="closed" {% if status == 'closed' %}selected{% endif %}>Закрытые</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 21px;">🔍 Применить</button>
+                <a href="{{ url_for('sick_leaves') }}" class="btn btn-secondary" style="margin-top: 21px;">🔄 Сбросить</a>
+            </div>
+        </form>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="info-table">
+            <thead>
+                <tr>
+                    <th>Сотрудник</th>
+                    <th>Отдел</th>
+                    <th>Номер</th>
+                    <th>Диагноз</th>
+                    <th>Период</th>
+                    <th>Дней</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sl in sick_leaves %}
+                <tr>
+                    <td><a href="{{ url_for('view_employee', id=sl.employee.id) }}">{{ sl.employee.full_name() }}</a></td>
+                    <td>{{ sl.employee.assignments|selectattr('is_main')|selectattr('end_date', 'none')|first|attr('staffing')|attr('department')|attr('name') or '-' }}</td>
+                    <td>{{ sl.sick_list_number }}</td>
+                    <td>{{ sl.diagnosis or '-' }}</td>
+                    <td>{{ sl.start_date.strftime('%d.%m.%Y') }} - {{ sl.end_date.strftime('%d.%m.%Y') }}</td>
+                    <td>{{ sl.days_count }}</td>
+                    <td>
+                        {% if sl.end_date >= today %}
+                            <span class="badge badge-warning">Активен</span>
+                        {% else %}
+                            <span class="badge">Закрыт</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('view_employee', id=sl.employee.id) }}" class="btn btn-info btn-sm">👁️</a>
+                        <a href="{{ url_for('edit_sick_leave', id=sl.id) }}" class="btn btn-success btn-sm">✏️</a>
+                        <form method="POST" action="{{ url_for('delete_sick_leave', id=sl.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Удалить запись?')">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: #8a9aa8;">Нет записей о больничных листах</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

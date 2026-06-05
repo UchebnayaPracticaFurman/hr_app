@@ -9,8 +9,41 @@
         <a href="{{ url_for('add_position') }}" class="btn btn-primary btn-sm" style="float: right;">➕ Добавить должность</a>
     </div>
     
+    <!-- Форма фильтрации -->
+    <div style="padding: 1rem; background: #f8f9fb; border-bottom: 1px solid #e8ecef;">
+        <form method="GET" action="{{ url_for('positions') }}" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-size: 0.75rem;">🔍 Поиск</label>
+                <input type="text" name="search" value="{{ search }}" placeholder="Название должности..." style="margin-top: 4px;">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 0.75rem;">📂 Категория</label>
+                <select name="category" style="margin-top: 4px;">
+                    <option value="">Все категории</option>
+                    <option value="top_management" {% if category == 'top_management' %}selected{% endif %}>Топ-менеджмент</option>
+                    <option value="middle_management" {% if category == 'middle_management' %}selected{% endif %}>Руководитель</option>
+                    <option value="specialist" {% if category == 'specialist' %}selected{% endif %}>Специалист</option>
+                    <option value="worker" {% if category == 'worker' %}selected{% endif %}>Рабочий</option>
+                    <option value="junior" {% if category == 'junior' %}selected{% endif %}>Junior</option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+                <label style="font-size: 0.75rem;">👑 Руководящая</label>
+                <select name="is_head" style="margin-top: 4px;">
+                    <option value="">Все</option>
+                    <option value="yes" {% if is_head == 'yes' %}selected{% endif %}>Да</option>
+                    <option value="no" {% if is_head == 'no' %}selected{% endif %}>Нет</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 21px;">🔍 Применить</button>
+                <a href="{{ url_for('positions') }}" class="btn btn-secondary" style="margin-top: 21px;">🔄 Сбросить</a>
+            </div>
+        </form>
+    </div>
+    
     <div style="overflow-x: auto;">
-        <table>
+        <table class="info-table">
             <thead>
                 <tr>
                     <th>Название</th>
@@ -26,9 +59,9 @@
                     <td><strong>{{ pos.name }}</strong></td>
                     <td>
                         {% if pos.category == 'top_management' %}
-                            <span class="badge badge-danger">Топ-менеджмент</span>
+                            <span class="badge badge-head">Топ-менеджмент</span>
                         {% elif pos.category == 'middle_management' %}
-                            <span class="badge badge-warning">Руководитель</span>
+                            <span class="badge badge-head">Руководитель</span>
                         {% elif pos.category == 'specialist' %}
                             <span class="badge badge-info">Специалист</span>
                         {% elif pos.category == 'worker' %}
@@ -40,7 +73,7 @@
                     <td>{{ "{:,.2f}".format(pos.base_salary) if pos.base_salary else '0' }} ₽</td>
                     <td>
                         {% if pos.is_head or pos.category in ['top_management', 'middle_management'] %}
-                            <span class="badge badge-head">👔 Руководитель</span>
+                            <span class="badge badge-head">👔 Да</span>
                         {% else %}
                             <span class="badge">Нет</span>
                         {% endif %}
@@ -52,6 +85,10 @@
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Удалить должность?')">🗑️</button>
                         </form>
                     </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #8a9aa8;">Должности не найдены</td>
                 </tr>
                 {% endfor %}
             </tbody>

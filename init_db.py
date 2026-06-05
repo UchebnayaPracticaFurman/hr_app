@@ -52,7 +52,6 @@ def update_gender_column():
         if table_exists:
             print("\n🔧 Обновление структуры поля gender...")
             
-            # Проверяем текущий тип поля
             cursor.execute("SHOW COLUMNS FROM employees LIKE 'gender'")
             column_info = cursor.fetchone()
             
@@ -95,7 +94,6 @@ def add_is_head_column():
         if table_exists:
             print("\n🔧 Проверка структуры таблицы positions...")
             
-            # Проверяем, существует ли колонка is_head
             cursor.execute("SHOW COLUMNS FROM positions LIKE 'is_head'")
             column_exists = cursor.fetchone()
             
@@ -104,7 +102,6 @@ def add_is_head_column():
                 cursor.execute("ALTER TABLE positions ADD COLUMN is_head BOOLEAN DEFAULT FALSE")
                 print("✅ Колонка is_head добавлена")
                 
-                # Обновляем существующие должности
                 print("📝 Обновление руководящих должностей...")
                 cursor.execute("UPDATE positions SET is_head = 1 WHERE category IN ('top_management', 'middle_management')")
                 print("✅ Руководящие должности отмечены")
@@ -124,6 +121,53 @@ def add_is_head_column():
         return False
 
 
+def update_sick_leaves_table():
+    """Добавляет колонки doctor_name и hospital_name в таблицу sick_leaves, если их нет"""
+    try:
+        connection = pymysql.connect(**DB_CONFIG, database=DB_NAME)
+        cursor = connection.cursor()
+        
+        cursor.execute("SHOW TABLES LIKE 'sick_leaves'")
+        table_exists = cursor.fetchone()
+        
+        if table_exists:
+            print("\n🔧 Проверка структуры таблицы sick_leaves...")
+            
+            # Добавляем колонку doctor_name
+            cursor.execute("SHOW COLUMNS FROM sick_leaves LIKE 'doctor_name'")
+            column_exists = cursor.fetchone()
+            
+            if not column_exists:
+                print("📝 Добавление колонки doctor_name в таблицу sick_leaves...")
+                cursor.execute("ALTER TABLE sick_leaves ADD COLUMN doctor_name VARCHAR(200) AFTER diagnosis")
+                print("✅ Колонка doctor_name добавлена")
+            else:
+                print("✅ Колонка doctor_name уже существует")
+            
+            # Добавляем колонку hospital_name
+            cursor.execute("SHOW COLUMNS FROM sick_leaves LIKE 'hospital_name'")
+            column_exists = cursor.fetchone()
+            
+            if not column_exists:
+                print("📝 Добавление колонки hospital_name в таблицу sick_leaves...")
+                cursor.execute("ALTER TABLE sick_leaves ADD COLUMN hospital_name VARCHAR(200) AFTER doctor_name")
+                print("✅ Колонка hospital_name добавлена")
+            else:
+                print("✅ Колонка hospital_name уже существует")
+            
+            connection.commit()
+        else:
+            print("⚠️ Таблица sick_leaves не найдена, пропускаем обновление")
+        
+        cursor.close()
+        connection.close()
+        return True
+        
+    except Exception as e:
+        print(f"❌ Ошибка при обновлении таблицы sick_leaves: {e}")
+        return False
+
+
 def table_exists(table_name):
     """Проверяет существование таблицы в базе данных"""
     inspector = inspect(db.engine)
@@ -137,7 +181,7 @@ def get_tables_status():
     
     all_tables = ['employees', 'departments', 'positions', 'staffing', 
                   'employee_positions', 'orders', 'vacations', 'sick_leaves', 
-                  'salary_history', 'education']
+                  'salary_history', 'education', 'dismissed_employees']
     
     status = {}
     for table in all_tables:
@@ -165,7 +209,7 @@ def init_database():
         existing_count = sum(tables_before.values())
         
         if existing_count > 0:
-            print(f"📊 Найдено существующих таблиц: {existing_count}/10")
+            print(f"📊 Найдено существующих таблиц: {existing_count}/11")
             for table, exists in tables_before.items():
                 status = "✅" if exists else "❌"
                 print(f"  {status} {table}")
@@ -176,27 +220,30 @@ def init_database():
         tables_after = get_tables_status()
         created_count = sum(tables_after.values())
         
-        print(f"\n📊 Итоговое состояние: {created_count}/10 таблиц")
+        print(f"\n📊 Итоговое состояние: {created_count}/11 таблиц")
         for table, exists in tables_after.items():
             status = "✅" if exists else "❌"
             print(f"  {status} {table}")
         
-        if created_count == 10:
+        if created_count == 11:
             print("\n🎉 Все таблицы успешно созданы!")
         else:
-            print(f"\n⚠️ Создано только {created_count} из 10 таблиц")
+            print(f"\n⚠️ Создано только {created_count} из 11 таблиц")
     
-    # Шаг 3: Обновление структуры поля gender (вне контекста app)
+    # Шаг 3: Обновление структуры поля gender
     update_gender_column()
     
     # Шаг 4: Добавление колонки is_head в positions
     add_is_head_column()
     
-    # Шаг 5: Проверка наличия тестовых данных
+    # Шаг 5: Добавление колонок в sick_leaves
+    update_sick_leaves_table()
+    
+    # Шаг 6: Проверка наличия тестовых данных
     with app.app_context():
         print("\n📊 Проверка тестовых данных...")
         
-        from app import Employee, Department, Position, Staffing, Vacation, SickLeave
+        from app import Employee, Department, Position, Staffing, Vacation, SickLeave, DismissedEmployee
         
         employees_count = Employee.query.count()
         if employees_count == 0:
@@ -205,11 +252,8 @@ def init_database():
         else:
             print(f"✅ Найдено {employees_count} сотрудников в базе")
             
-            # Проверяем и обновляем руководящие должности
             print("\n🔍 Проверка руководящих должностей...")
             update_head_positions()
-    
-    return True
 
 
 def update_head_positions():
@@ -217,7 +261,6 @@ def update_head_positions():
     try:
         from app import Position
         
-        # Обновляем должности с категориями руководства
         Position.query.filter(
             Position.category.in_(['top_management', 'middle_management'])
         ).update({Position.is_head: True}, synchronize_session=False)
@@ -225,7 +268,6 @@ def update_head_positions():
         db.session.commit()
         print("✅ Статус руководящих должностей обновлён")
         
-        # Показываем список руководящих должностей
         head_positions = Position.query.filter_by(is_head=True).all()
         if head_positions:
             print(f"\n📋 Руководящие должности ({len(head_positions)}):")
@@ -239,7 +281,8 @@ def update_head_positions():
 
 def add_test_data():
     """Добавляет тестовые данные в базу"""
-    from app import Employee, Department, Position, Staffing, EmployeePosition, Vacation, SickLeave, db
+    from app import (Employee, Department, Position, Staffing, EmployeePosition, 
+                     Vacation, SickLeave, DismissedEmployee, db)
     
     try:
         # Добавление должностей (с полем is_head)
@@ -375,13 +418,13 @@ def add_test_data():
         
         # Добавление назначений
         assignments_data = [
-            (employees[0], staffing_units[0], '2010-03-01', True),  # Иванов - Генеральный директор
-            (employees[1], staffing_units[1], '2012-06-15', True),  # Петрова - Финансовый директор
-            (employees[2], staffing_units[2], '2015-01-20', True),  # Сидоров - Технический директор
-            (employees[3], staffing_units[3], '2018-09-10', True),  # Козлова - Начальник финансового отдела
-            (employees[4], staffing_units[6], '2020-02-14', True),  # Смирнов - Ведущий программист
-            (employees[5], staffing_units[7], '2019-03-25', True),  # Васильева - Программист
-            (employees[6], staffing_units[5], '2008-12-01', True),  # Павлов - Начальник IT-отдела
+            (employees[0], staffing_units[0], '2010-03-01', True),
+            (employees[1], staffing_units[1], '2012-06-15', True),
+            (employees[2], staffing_units[2], '2015-01-20', True),
+            (employees[3], staffing_units[3], '2018-09-10', True),
+            (employees[4], staffing_units[6], '2020-02-14', True),
+            (employees[5], staffing_units[7], '2019-03-25', True),
+            (employees[6], staffing_units[5], '2008-12-01', True),
         ]
         
         for emp, staff, start_date, is_main in assignments_data:
@@ -406,15 +449,13 @@ def add_test_data():
         # Автоматическое назначение руководителей отделов
         print("  👔 Назначение руководителей отделов...")
         
-        # Назначаем генерального директора руководителем управления
         management_dept = departments['Управление']
-        gen_dir_staff = staffing_units[0]  # Генеральный директор
+        gen_dir_staff = staffing_units[0]
         gen_dir_assignment = EmployeePosition.query.filter_by(staffing_id=gen_dir_staff.id, end_date=None).first()
         if gen_dir_assignment:
             management_dept.manager_id = gen_dir_assignment.employee_id
             print(f"    - Управление: {gen_dir_assignment.employee.full_name()} (Генеральный директор)")
         
-        # Назначаем начальников отделов
         head_mappings = [
             ('Финансовый отдел', 'Начальник отдела'),
             ('IT-отдел', 'Начальник отдела'),
@@ -463,13 +504,13 @@ def add_test_data():
                 db.session.add(vacation)
         print("  ✅ Отпуска добавлены")
         
-        # Добавление больничных
+        # Добавление больничных (с новыми полями)
         sick_leaves_data = [
-            (employees[3], '2024-03-10', '2024-03-15', 'SL-2024-001', 'ОРВИ'),
-            (employees[5], '2024-04-20', '2024-04-25', 'SL-2024-002', 'Грипп'),
+            (employees[3], '2024-03-10', '2024-03-15', 'SL-2024-001', 'ОРВИ', 'Иванова А.А.', 'Городская поликлиника №1'),
+            (employees[5], '2024-04-20', '2024-04-25', 'SL-2024-002', 'Грипп', 'Петров Б.Б.', 'Областная больница'),
         ]
         
-        for emp, start, end, number, diagnosis in sick_leaves_data:
+        for emp, start, end, number, diagnosis, doctor, hospital in sick_leaves_data:
             existing = SickLeave.query.filter_by(sick_list_number=number).first()
             if not existing:
                 start_date = datetime.strptime(start, '%Y-%m-%d').date()
@@ -481,6 +522,8 @@ def add_test_data():
                     end_date=end_date,
                     sick_list_number=number,
                     diagnosis=diagnosis,
+                    doctor_name=doctor,
+                    hospital_name=hospital,
                     days_count=days_count
                 )
                 db.session.add(sick)
@@ -489,7 +532,6 @@ def add_test_data():
         db.session.commit()
         print("\n🎉 Все тестовые данные успешно добавлены!")
         
-        # Показываем статистику
         print("\n📊 Статистика:")
         print(f"  👥 Сотрудников: {Employee.query.count()}")
         print(f"  🏢 Отделов: {Department.query.count()}")
@@ -498,8 +540,8 @@ def add_test_data():
         print(f"  🔗 Назначений: {EmployeePosition.query.count()}")
         print(f"  🌴 Отпусков: {Vacation.query.count()}")
         print(f"  🤒 Больничных: {SickLeave.query.count()}")
+        print(f"  🗑️ Уволенных сотрудников в очереди: {DismissedEmployee.query.count()}")
         
-        # Показываем руководителей отделов
         print("\n👔 Руководители отделов:")
         for dept in Department.query.all():
             if dept.manager:
@@ -510,6 +552,8 @@ def add_test_data():
     except Exception as e:
         db.session.rollback()
         print(f"❌ Ошибка при добавлении тестовых данных: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 
@@ -531,11 +575,9 @@ def reset_database():
         db.create_all()
         print("✅ Таблицы созданы")
     
-    # Обновление структуры поля gender
     update_gender_column()
-    
-    # Добавление колонки is_head
     add_is_head_column()
+    update_sick_leaves_table()
     
     with app.app_context():
         print("📝 Добавление тестовых данных...")
@@ -560,5 +602,9 @@ if __name__ == '__main__':
         print("  python app.py")
         print("\nДля просмотра руководящих должностей:")
         print("  http://localhost:5000/head-positions")
+        print("\nДля просмотра уволенных сотрудников:")
+        print("  http://localhost:5000/dismissed-employees")
+        print("\nДля просмотра больничных:")
+        print("  http://localhost:5000/sick-leaves")
         print("\nДля полного сброса базы данных:")
         print("  python init_db.py --reset")

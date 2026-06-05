@@ -12,10 +12,13 @@
         <div class="nav-links">
             <a href="{{ url_for('index') }}">Главная</a>
             <a href="{{ url_for('employees') }}">Сотрудники</a>
+            <a href="{{ url_for('dismissed_employees') }}">🗑️ Уволенные</a>
             <a href="{{ url_for('departments') }}">Отделы</a>
             <a href="{{ url_for('positions') }}">Должности</a>
-            <a href="{{ url_for('staffing') }}">Штатное расписание</a>
             <a href="{{ url_for('head_positions') }}">Руководящие должности</a>
+            <a href="{{ url_for('staffing') }}">Штатное расписание</a>
+            <a href="{{ url_for('sick_leaves') }}">🤒 Больничные</a>
+            <a href="{{ url_for('sick_leave_stats') }}">📊 Статистика больничных</a>
         </div>
     </nav>
     

@@ -9,8 +9,31 @@
         <a href="{{ url_for('add_department') }}" class="btn btn-primary btn-sm" style="float: right;">➕ Добавить отдел</a>
     </div>
     
+    <!-- Форма фильтрации -->
+    <div style="padding: 1rem; background: #f8f9fb; border-bottom: 1px solid #e8ecef;">
+        <form method="GET" action="{{ url_for('departments') }}" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 2; min-width: 250px;">
+                <label style="font-size: 0.75rem;">🔍 Поиск</label>
+                <input type="text" name="search" value="{{ search }}" placeholder="Название или код отдела..." style="margin-top: 4px;">
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="font-size: 0.75rem;">📁 Родительский отдел</label>
+                <select name="parent_id" style="margin-top: 4px;">
+                    <option value="">Все отделы</option>
+                    {% for dept in all_departments %}
+                    <option value="{{ dept.id }}" {% if parent_id == dept.id %}selected{% endif %}>{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 21px;">🔍 Применить</button>
+                <a href="{{ url_for('departments') }}" class="btn btn-secondary" style="margin-top: 21px;">🔄 Сбросить</a>
+            </div>
+        </form>
+    </div>
+    
     <div style="overflow-x: auto;">
-        <table>
+        <table class="info-table">
             <thead>
                 <tr>
                     <th>Название</th>
@@ -40,6 +63,10 @@
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Удалить отдел?')">🗑️</button>
                         </form>
                     </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #8a9aa8;">Отделы не найдены</td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -557,3 +557,24 @@ small {
         grid-template-columns: 1fr;
     }
 }
+
+/* Стили для форм фильтрации */
+.filter-form {
+    background: #f8f9fb;
+    padding: 1rem;
+    border-bottom: 1px solid #e8ecef;
+}
+
+.filter-form label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8a9aa8;
+    margin-bottom: 0.25rem;
+}
+
+.filter-form input, 
+.filter-form select {
+    margin-top: 0;
+    background: white;
+}

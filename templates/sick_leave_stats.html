@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика по больничным{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ total_sick_leaves }}</div>
+        <div class="stat-label">Больничных за {{ current_year }} год</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ total_days }}</div>
+        <div class="stat-label">Дней на больничном</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ "%.1f"|format(avg_days) }}</div>
+        <div class="stat-label">Средняя длительность (дней)</div>
+    </div>
+</div>
+
+<div class="info-grid">
+    <div class="card">
+        <div class="card-header">📊 Больничные по месяцам</div>
+        <div style="padding: 1.25rem;">
+            {% for stat in monthly_stats %}
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span><strong>{{ stat.month }} месяц</strong></span>
+                    <span>{{ stat.total_days or 0 }} дней ({{ stat.count or 0 }} больничных)</span>
+                </div>
+                <div class="progress-bar">
+                    {% set max_days = monthly_stats|map(attribute='total_days')|max or 1 %}
+                    <div class="progress-fill" style="width: {{ (stat.total_days or 0) / max_days * 100 }}%;"></div>
+                </div>
+            </div>
+            {% else %}
+            <p style="color: #8a9aa8;">Нет данных за {{ current_year }} год</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">🏆 Чаще всего болеют</div>
+        <div style="padding: 1.25rem;">
+            {% for emp in top_employees %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e8ecef;">
+                <div>
+                    <strong><a href="{{ url_for('view_employee', id=emp.id) }}">{{ emp.last_name }} {{ emp.first_name }}</a></strong>
+                </div>
+                <div>
+                    <span class="badge badge-warning">{{ emp.total_days or 0 }} дней</span>
+                    <span class="badge">({{ emp.sick_count or 0 }} больничных)</span>
+                </div>
+            </div>
+            {% else %}
+            <p style="color: #8a9aa8;">Нет данных</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">ℹ️ Информация о больничных листах</div>
+    <div style="padding: 1.25rem;">
+        <ul style="margin-left: 1.25rem; color: #5a6e7a;">
+            <li><strong>Активные больничные</strong> — те, у которых дата окончания ещё не наступила</li>
+            <li><strong>Закрытые больничные</strong> — те, у которых дата окончания уже прошла</li>
+            <li><strong>Добавление больничного</strong> — можно через карточку сотрудника или отдельную страницу</li>
+            <li><strong>Номер больничного листа</strong> — должен быть уникальным</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

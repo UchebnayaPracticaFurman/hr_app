@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Редактирование' if sick_leave else 'Добавление' }} больничного листа{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        {{ '✏️ Редактирование' if sick_leave else '➕ Добавление' }} больничного листа
+        {% if not sick_leave %}
+        <span style="float: right; font-size: 14px; font-weight: normal;">Сотрудник: {{ employee.full_name() }}</span>
+        {% endif %}
+    </div>
+    
+    <form method="POST" style="padding: 1.25rem;">
+        <div class="info-grid">
+            <div class="form-group">
+                <label>📅 Дата начала *</label>
+                <input type="date" name="start_date" value="{{ sick_leave.start_date if sick_leave else '' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label>📅 Дата окончания *</label>
+                <input type="date" name="end_date" value="{{ sick_leave.end_date if sick_leave else '' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label>📄 Номер больничного листа *</label>
+                <input type="text" name="sick_list_number" value="{{ sick_leave.sick_list_number if sick_leave else '' }}" placeholder="BL-2024-001" required>
+                <small>Уникальный номер документа</small>
+            </div>
+            
+            <div class="form-group">
+                <label>🩺 Диагноз</label>
+                <input type="text" name="diagnosis" value="{{ sick_leave.diagnosis if sick_leave else '' }}" placeholder="ОРВИ, Грипп и т.д.">
+            </div>
+            
+            <div class="form-group">
+                <label>👨‍⚕️ Врач</label>
+                <input type="text" name="doctor_name" value="{{ sick_leave.doctor_name if sick_leave else '' }}" placeholder="ФИО врача">
+            </div>
+            
+            <div class="form-group">
+                <label>🏥 Медицинское учреждение</label>
+                <input type="text" name="hospital_name" value="{{ sick_leave.hospital_name if sick_leave else '' }}" placeholder="Название больницы/поликлиники">
+            </div>
+        </div>
+        
+        {% if sick_leave %}
+        <div class="info-card" style="margin-bottom: 20px;">
+            <div class="info-label">📊 Длительность</div>
+            <div class="info-value">Всего дней: <strong>{{ sick_leave.days_count }}</strong></div>
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+            <a href="{{ url_for('view_employee', id=employee.id if employee else sick_leave.employee_id) }}" class="btn btn-secondary">↩️ Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Автоматический расчёт количества дней
+const startDate = document.querySelector('input[name="start_date"]');
+const endDate = document.querySelector('input[name="end_date"]');
+
+function calculateDays() {
+    if (startDate.value && endDate.value) {
+        const start = new Date(startDate.value);
+        const end = new Date(endDate.value);
+        if (end >= start) {
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            // Можно добавить отображение количества дней
+        }
+    }
+}
+
+startDate.addEventListener('change', calculateDays);
+endDate.addEventListener('change', calculateDays);
+</script>
+{% endblock %}

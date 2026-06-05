@@ -32,6 +32,18 @@
     </div>
 </div>
 
+<!-- Быстрые действия -->
+<div class="card">
+    <div class="card-header">🔗 Быстрые действия</div>
+    <div style="padding: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="{{ url_for('add_employee') }}" class="btn btn-primary">➕ Добавить сотрудника</a>
+        <a href="{{ url_for('add_department') }}" class="btn btn-success">🏢 Добавить отдел</a>
+        <a href="{{ url_for('add_position') }}" class="btn btn-warning">💼 Добавить должность</a>
+        <a href="{{ url_for('add_staffing') }}" class="btn btn-info">📋 Добавить штатную единицу</a>
+    </div>
+</div>
+
+
 <!-- Детальная отчётность -->
 <div class="info-grid">
     <!-- Возрастной состав -->
@@ -118,60 +130,6 @@
     </div>
 </div>
 
-<!-- Статистика по отделам -->
-<div class="card">
-    <div class="card-header">🏢 Статистика по отделам</div>
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr><th>Отдел</th><th>Руководитель</th><th>Сотрудников</th><th>ФОТ (мес)</th></tr>
-            </thead>
-            <tbody>
-                {% for dept in dept_stats %}
-                <tr>
-                    <td><strong>{{ dept.name }}</strong></td>
-                    <td>{{ dept.manager }}</td>
-                    <td>{{ dept.employees_count }}</td>
-                    <td>{{ "{:,.2f}".format(dept.salary_fund) }} ₽</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Топ должностей -->
-<div class="card">
-    <div class="card-header">💼 Топ должностей по численности</div>
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr><th>Должность</th><th>Категория</th><th>Сотрудников</th><th>Базовый оклад</th></tr>
-            </thead>
-            <tbody>
-                {% for pos in position_stats|sort(attribute='employees_count', reverse=True) %}
-                <tr>
-                    <td><strong>{{ pos.name }}</strong></td>
-                    <td>
-                        {% if pos.category == 'top_management' %}
-                        <span class="badge badge-danger">Топ-менеджмент</span>
-                        {% elif pos.category == 'middle_management' %}
-                        <span class="badge badge-warning">Руководитель</span>
-                        {% elif pos.category == 'specialist' %}
-                        <span class="badge badge-info">Специалист</span>
-                        {% else %}
-                        <span class="badge">{{ pos.category }}</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ pos.employees_count }}</td>
-                    <td>{{ "{:,.2f}".format(pos.base_salary) }} ₽</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
 <!-- Недавние события и сводка -->
 <div class="info-grid">
     <div class="card">
@@ -226,14 +184,61 @@
     </div>
 </div>
 
-<!-- Быстрые действия -->
+<!-- Статистика по отделам -->
 <div class="card">
-    <div class="card-header">🔗 Быстрые действия</div>
-    <div style="padding: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
-        <a href="{{ url_for('add_employee') }}" class="btn btn-primary">➕ Добавить сотрудника</a>
-        <a href="{{ url_for('add_department') }}" class="btn btn-success">🏢 Добавить отдел</a>
-        <a href="{{ url_for('add_position') }}" class="btn btn-warning">💼 Добавить должность</a>
-        <a href="{{ url_for('add_staffing') }}" class="btn btn-info">📋 Добавить штатную единицу</a>
+    <div class="card-header">🏢 Статистика по отделам</div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr><th>Отдел</th><th>Руководитель</th><th>Сотрудников</th><th>ФОТ (мес)</th></tr>
+            </thead>
+            <tbody>
+                {% for dept in dept_stats %}
+                <tr>
+                    <td><strong>{{ dept.name }}</strong></td>
+                    <td>{{ dept.manager }}</td>
+                    <td>{{ dept.employees_count }}</td>
+                    <td>{{ "{:,.2f}".format(dept.salary_fund) }} ₽</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+
+<!-- Топ должностей -->
+<div class="card">
+    <div class="card-header">💼 Топ должностей по численности</div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr><th>Должность</th><th>Категория</th><th>Сотрудников</th><th>Базовый оклад</th></tr>
+            </thead>
+            <tbody>
+                {% for pos in position_stats|sort(attribute='employees_count', reverse=True) %}
+                <tr>
+                    <td><strong>{{ pos.name }}</strong></td>
+                    <td>
+                        {% if pos.category == 'top_management' %}
+                        <span class="badge badge-danger">Топ-менеджмент</span>
+                        {% elif pos.category == 'middle_management' %}
+                        <span class="badge badge-warning">Руководитель</span>
+                        {% elif pos.category == 'specialist' %}
+                        <span class="badge badge-info">Специалист</span>
+                        {% else %}
+                        <span class="badge">{{ pos.category }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ pos.employees_count }}</td>
+                    <td>{{ "{:,.2f}".format(pos.base_salary) }} ₽</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+
 {% endblock %}
